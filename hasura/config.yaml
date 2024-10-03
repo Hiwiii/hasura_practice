@@ -1,5 +1,5 @@
 version: 3
-endpoint: https://hiwot.hasura.app/v1/graphql
+endpoint: https://hiwot.hasura.app
 metadata_directory: metadata
 actions:
   kind: synchronous
