@@ -1,23 +1,19 @@
 import type { NextPage } from "next";
-// import Head from "next/head";
+import Head from "next/head";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 
-type Friend = {
-  name: string;
-};
-
 type Data = {
-  friends: Friend[];
+  friends: Record<string, string>[];
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  let friends: Friend[] = [];
+  let friends: Record<string, string>[] = [];
 
   const data = await fetch(
     process.env.NEXT_PUBLIC_HASURA_PROJECT_ENDPOINT as string,
     {
       headers: {
-        "x-hasura-admin-secret": process.env.NEXT_PUBLIC_HASURA_ADMIN_SECRET as string,
+        "x-hasura-admin-secret": process.env.HASURA_ADMIN_SECRET as string,
       },
       body: JSON.stringify({
         query: `
@@ -48,7 +44,7 @@ const Home: NextPage<Data> = ({ friends }) => {
   return (
     <div>
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        {friends.map((friend) => (
+        {friends.map((friend: Record<string, string>) => (
           <div key={friend.name}>{friend.name}</div>
         ))}
       </main>
