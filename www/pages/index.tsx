@@ -1,8 +1,13 @@
 import Image from "next/image";
 import localFont from "next/font/local";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 
+import { GetServerSideProps } from "next";
 import { client } from "../utils/client";
+import {
+  GetFriends,
+  GetFriendsQuery,
+  GetFriendsQueryVariables,
+} from "@/generated/graphql";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,80 +21,34 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-type Friend = {
-  name: string;
-};
+interface Props {
+  friends: GetFriendsQuery["friend"];
+}
 
-type Data = {
-  friends: Friend[];
-};
-
-const QUERY = `query {
- friend { 
- name 
-  } 
- }`;
-// export const getServerSideProps: GetServerSideProps = async (context) => {
-//   // let friends = [];
-//   return client
-//     .query(QUERY)
-//     .toPromise()
-//     .then((d) => {
-//       return {
-//         props: { friends: d.data?.friend },
-//       };
-//     })
-//     .catch((e) => {
-//       return {
-//         props: {},
-//       };
-//     });
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
-    const result = await client.query(QUERY, {}).toPromise(); 
+    const result = await client
+      .query<GetFriendsQuery, GetFriendsQueryVariables>(GetFriends, {})
+      .toPromise();
+
+    console.log("GraphQL Query Result:", result); 
 
     return {
-      props: { friends: result.data?.friend || [] }, 
+      props: { friends: result.data?.friend || [] },
     };
   } catch (error) {
     console.error("Error fetching data:", error);
     return {
-      props: { friends: [] }, // Return an empty array in case of an error
+      props: { friends: [] },
     };
   }
 };
-  // try {
-  //   const res = await fetch(process.env.NEXT_PUBLIC_HASURA_PROJECT_ENDPOINT as string, {
-  //     method: 'POST',
-  //     headers: {
-  //       'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET as string,
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify({
-  //       query: `
-  //         query {
-  //           friend {
-  //             name
-  //           }
-  //         }
-  //       `,
-  //     }),
-  //   });
 
-  //   const result = await res.json(); // Parse the response to JSON
-  //   const data = result?.data;
-  //   friends = data?.friend || []; // Ensure it's always an array
-
-  // } catch (error) {
-  //   console.error('Error fetching data:', error);
-  // }
-
-
-export default function Home({
-  friends,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Home({ friends }: Props) {
   // Ensure friends is an array
   const friendsList = Array.isArray(friends) ? friends : [];
+
+  console.log("Friends prop received:", friendsList); 
 
   return (
     <div
@@ -99,8 +58,8 @@ export default function Home({
         <h1 className="text-2xl font-bold">Friends List</h1>
         <ul>
           {friendsList.length > 0 ? (
-            friendsList.map((friend: Friend, index: number) => (
-              <li key={index}>{friend.name}</li>
+            friendsList.map((friend) => (
+              <li key={friend.id}>{friend.name}</li>
             ))
           ) : (
             <li>No friends found</li>
@@ -156,5 +115,4 @@ export default function Home({
       </footer>
     </div>
   );
-  
 }
